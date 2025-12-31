@@ -1,0 +1,29 @@
+# Build output
+Output/
+
+# Test results
+testResults.xml
+codeCoverage.xml
+coverage.xml
+out/
+
+# Scratch/temporary files
+scratch/
+
+# Local integration test settings (contains tokens/secrets)
+tests/local.settings.ps1
+
+# Secret vault password
+local.secrets.json
+
+# Claude Code local settings
+.claude/
+
+# IDE specific
+.idea/
+*.suo
+*.user
+
+# OS specific
+.DS_Store
+Thumbs.db

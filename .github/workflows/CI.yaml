@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    name: PSScriptAnalyzer Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/powershell/Modules
+          key: ${{ runner.os }}-psmodules-lint-${{ hashFiles('build.depend.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-psmodules-lint-
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path ./{{ModuleName}} -Recurse -Settings PSGallery -ReportSummary
+          $errors = $results | Where-Object { $_.Severity -eq 'Error' }
+
+          if ($results) {
+            Write-Host "::group::PSScriptAnalyzer Results"
+            $results | Format-Table -AutoSize
+            Write-Host "::endgroup::"
+          }
+
+          if ($errors) {
+            Write-Host "::error::PSScriptAnalyzer found $($errors.Count) error(s)"
+            exit 1
+          }
+
+          Write-Host "PSScriptAnalyzer passed with no errors"
+
+  unit-tests:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Documents/PowerShell/Modules
+            ~/.local/share/powershell/Modules
+          key: ${{ runner.os }}-psmodules-${{ hashFiles('build.depend.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-psmodules-
+
+      - name: Build and Test
+        shell: pwsh
+        run: |
+          New-Item -Path out -ItemType Directory -Force | Out-Null
+          ./build.ps1 -Task Build,Test -Bootstrap
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: success()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: out/codeCoverage.xml
+          flags: ${{ matrix.os }}
+          fail_ci_if_error: false
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: out/
+          retention-days: 30
