@@ -1,38 +1,30 @@
 {
-  "name": "{{ModuleName}} DevContainer",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
+  "name": "PowerShell Claude Code",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "initializeCommand": "pwsh -NoProfile -File .devcontainer/setup-host.ps1",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
   "remoteUser": "vscode",
-  "containerEnv": {
-    "DEVCONTAINER": "true"
-  },
-  "mounts": [
-    "source={{ModuleNameLower}}-pwsh-modules,target=/home/vscode/.local/share/powershell/Modules,type=volume",
-    "source={{ModuleNameLower}}-pwsh-history,target=/home/vscode/.local/share/powershell/PSReadLine,type=volume"
-  ],
-  "postCreateCommand": "pwsh ./build.ps1 -Task Init -Bootstrap",
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pwsh ./build.ps1 -Task Init -Bootstrap",
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.powershell",
-        "anthropic.claude-code"
+        "ms-vscode.powershell"
       ],
       "settings": {
-        "powershell.codeFormatting.preset": "OTBS",
-        "powershell.scriptAnalysis.settingsPath": "./PSScriptAnalyzerSettings.psd1",
         "terminal.integrated.defaultProfile.linux": "pwsh",
-        "terminal.integrated.profiles.linux": {
-          "pwsh": {
-            "path": "/usr/bin/pwsh",
-            "icon": "terminal-powershell"
-          },
-          "bash": {
-            "path": "/bin/bash",
-            "icon": "terminal-bash"
-          }
-        }
+        "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1"
       }
     }
   }
