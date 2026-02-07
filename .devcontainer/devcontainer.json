@@ -1,6 +1,9 @@
 {
   "name": "PowerShell Claude Code",
-  "image": "mcr.microsoft.com/powershell:7-ubuntu-24.04",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "initializeCommand": "pwsh -NoProfile -File .devcontainer/setup-host.ps1",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": false,
@@ -13,12 +16,7 @@
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
   "remoteUser": "vscode",
-  "mounts": [
-    "source=gh-cli-config,target=/home/vscode/.config/gh,type=volume",
-    "source=${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
-    "source=${localEnv:USERPROFILE}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached"
-  ],
-  "postCreateCommand": "pwsh ./build.ps1 -Task Init -Bootstrap",
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && pwsh ./build.ps1 -Task Init -Bootstrap",
   "customizations": {
     "vscode": {
       "extensions": [

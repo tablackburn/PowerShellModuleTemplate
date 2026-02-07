@@ -19,6 +19,9 @@ local.secrets.json
 # Claude Code local settings
 .claude/
 
+# Devcontainer generated env (created by setup-host.ps1)
+.devcontainer/.env
+
 # IDE specific
 .idea/
 *.suo
