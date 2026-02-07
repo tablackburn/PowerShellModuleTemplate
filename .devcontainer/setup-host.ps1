@@ -19,9 +19,9 @@ $claudeHome = $claudeHome -replace '\\', '/'
 $workspace = $workspace -replace '\\', '/'
 
 $envContent = @"
-CLAUDE_HOST_HOME=$claudeHome
-LOCAL_WORKSPACE_FOLDER=$workspace
-LOCAL_WORKSPACE_FOLDER_BASENAME=$workspaceName
+CLAUDE_HOST_HOME="$claudeHome"
+LOCAL_WORKSPACE_FOLDER="$workspace"
+LOCAL_WORKSPACE_FOLDER_BASENAME="$workspaceName"
 "@
 
 $envPath = Join-Path $PSScriptRoot '.env'
