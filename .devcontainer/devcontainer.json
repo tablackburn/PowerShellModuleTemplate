@@ -24,7 +24,6 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "pwsh",
-        "powershell.codeFormatting.preset": "OTBS",
         "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1"
       }
     }

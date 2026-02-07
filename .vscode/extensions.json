@@ -1,7 +1,5 @@
 {
     "recommendations": [
-        "ms-vscode.powershell",
-        "editorconfig.editorconfig",
-        "eamodio.gitlens"
+        "ms-vscode.powershell"
     ]
 }
