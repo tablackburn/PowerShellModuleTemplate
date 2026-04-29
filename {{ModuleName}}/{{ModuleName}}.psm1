@@ -6,7 +6,7 @@ foreach ($import in @($public + $private)) {
         . $import.FullName
     } catch {
         Write-Error "Unable to dot source '$($import.FullName)'"
-        throw $_
+        throw
     }
 }
 

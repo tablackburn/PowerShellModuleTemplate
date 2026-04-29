@@ -43,7 +43,10 @@ function Split-SemVerString {
         throw "VersionString cannot be empty or null"
     }
 
-    $parts = $VersionString -split '-', 2
+    # Strip build metadata per SemVer 2.0.0 — it does not affect precedence and is
+    # not valid for [System.Version], so it must be removed before further parsing.
+    $coreVersion = ($VersionString -split '\+', 2)[0]
+    $parts = $coreVersion -split '-', 2
     return @{
         Version = $parts[0]
         Prerelease = if ($parts.Length -gt 1) { $parts[1] } else { $null }
@@ -119,9 +122,10 @@ function Compare-SemVerPrerelease {
         $secondIsNumeric = $secondId -match '^\d+$'
 
         if ($firstIsNumeric -and $secondIsNumeric) {
-            # Both numeric: compare as integers
-            $firstNum = [long]$firstId
-            $secondNum = [long]$secondId
+            # SemVer 2.0.0 permits arbitrarily large numeric identifiers — use BigInteger
+            # rather than [long] to avoid overflow.
+            $firstNum = [bigint]$firstId
+            $secondNum = [bigint]$secondId
 
             if ($firstNum -lt $secondNum) {
                 return -1

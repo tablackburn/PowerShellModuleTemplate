@@ -80,7 +80,7 @@ The script also renames the `{{ModuleName}}` folder, files containing `{{ModuleN
 
 ## Project structure (post-init)
 
-```
+```text
 <ModuleName>/
 ├── <ModuleName>/                 # Module source
 │   ├── Public/                   # Exported functions

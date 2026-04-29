@@ -49,6 +49,11 @@
     'requirementsVersion',
     Justification = 'false positive'
 )]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'candidateVersion',
+    Justification = 'false positive'
+)]
 param()
 
 BeforeDiscovery {
@@ -204,10 +209,20 @@ Describe 'Module manifest' {
                     $requirementsVersionSkipReason = 'dependency not found in requirements.psd1'
                 } elseif ($requirements.Item($dependencyName) -is [string]) {
                     # Plain string format: 'ModuleName' = '1.2.3'
-                    $requirementsVersion = $requirements.Item($dependencyName)
+                    $candidateVersion = $requirements.Item($dependencyName)
+                    if ([string]::IsNullOrWhiteSpace($candidateVersion)) {
+                        $requirementsVersionSkipReason = "requirements.psd1 entry for '$dependencyName' has an empty Version"
+                    } else {
+                        $requirementsVersion = $candidateVersion
+                    }
                 } elseif ($requirements.Item($dependencyName) -is [hashtable] -and $requirements.Item($dependencyName).ContainsKey('Version')) {
                     # Hashtable format: 'ModuleName' = @{ Version = '1.2.3' }
-                    $requirementsVersion = $requirements.Item($dependencyName).Version
+                    $candidateVersion = $requirements.Item($dependencyName).Version
+                    if ([string]::IsNullOrWhiteSpace($candidateVersion)) {
+                        $requirementsVersionSkipReason = "requirements.psd1 entry for '$dependencyName' has an empty Version"
+                    } else {
+                        $requirementsVersion = $candidateVersion
+                    }
                 } else {
                     # Invalid format
                     $requirementsVersionSkipReason = "requirements.psd1 entry for '$dependencyName' must be a string or hashtable with a Version key"

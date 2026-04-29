@@ -241,8 +241,8 @@ if (Test-Path -Path $templateModuleFolder) {
     # Rename example function files
     $publicFolder = Join-Path -Path $moduleFolder -ChildPath 'Public'
     $privateFolder = Join-Path -Path $moduleFolder -ChildPath 'Private'
-    $testPublicFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests\Unit\Public'
-    $testPrivateFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests\Unit\Private'
+    $testPublicFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests/Unit/Public'
+    $testPrivateFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests/Unit/Private'
 
     $foldersToCheck = @($publicFolder, $privateFolder, $testPublicFolder, $testPrivateFolder)
 
@@ -263,7 +263,7 @@ if (Test-Path -Path $templateModuleFolder) {
 }
 
 # Rename files in docs/en-US/ that contain {{ModuleName}} placeholder (e.g., about_{{ModuleName}}.help.md)
-$docsFolder = Join-Path -Path $PSScriptRoot -ChildPath 'docs\en-US'
+$docsFolder = Join-Path -Path $PSScriptRoot -ChildPath 'docs/en-US'
 if (Test-Path -Path $docsFolder) {
     $docsFiles = Get-ChildItem -Path $docsFolder -File | Where-Object {
         $_.Name -match '\{\{ModuleName\}\}'

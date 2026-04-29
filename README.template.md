@@ -66,7 +66,7 @@ cd {{ModuleName}}
 
 ### Project Structure
 
-```
+```text
 {{ModuleName}}/
 ├── {{ModuleName}}/           # Module source
 │   ├── Public/               # Exported functions
