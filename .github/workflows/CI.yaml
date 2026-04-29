@@ -56,6 +56,13 @@ jobs:
   unit-tests:
     name: Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Skip on the un-initialized template — Build's GENERATEMARKDOWN task
+    # can't import the manifest while {{GUID}} is still a literal placeholder.
+    # Marker: CHANGELOG.template.md exists only pre-init; Initialize-Template.ps1
+    # moves it onto CHANGELOG.md during init, so downstream repos run the full
+    # job. Path has no placeholder token, so init's substitution loop leaves it
+    # intact in this file.
+    if: hashFiles('CHANGELOG.template.md') == ''
     strategy:
       fail-fast: false
       matrix:

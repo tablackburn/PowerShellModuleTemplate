@@ -15,6 +15,9 @@ jobs:
   publish:
     name: Publish Module
     runs-on: ubuntu-latest
+    # Never publish the un-initialized template — the .psd1 still has
+    # {{ModuleName}} and {{GUID}} placeholders. Same marker as CI.yaml.
+    if: hashFiles('CHANGELOG.template.md') == ''
     steps:
       - name: Checkout
         uses: actions/checkout@v6
