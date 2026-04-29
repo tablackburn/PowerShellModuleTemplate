@@ -24,6 +24,31 @@
     'dependencies',
     Justification = 'false positive'
 )]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'dependencyName',
+    Justification = 'false positive'
+)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'dependencyRawData',
+    Justification = 'false positive'
+)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'manifestRawData',
+    Justification = 'false positive'
+)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'requirementsVersionSkipReason',
+    Justification = 'false positive'
+)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSUseDeclaredVarsMoreThanAssignments',
+    'requirementsVersion',
+    Justification = 'false positive'
+)]
 param()
 
 BeforeDiscovery {
@@ -85,7 +110,19 @@ BeforeAll {
         ErrorAction   = 'Stop'
         WarningAction = 'SilentlyContinue'
     }
+    $importDataFileParameters = @{
+        Path          = $moduleManifestPath
+        ErrorAction   = 'Stop'
+        WarningAction = 'SilentlyContinue'
+    }
     $manifestData = Test-ModuleManifest @testModuleManifestParameters
+    $manifestRawData = Import-PowerShellDataFile @importDataFileParameters
+
+    # Import ManifestHelpers.psm1 for SemVer helper functions
+    Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'ManifestHelpers.psm1') -Verbose:$false -Force
+
+    $requirementsPath = Join-Path -Path $env:BHProjectPath -ChildPath 'requirements.psd1'
+    $requirements = Import-PowerShellDataFile -Path $requirementsPath -ErrorAction Stop
 
     # Parse the version from the changelog
     $changelogPath = Join-Path -Path $Env:BHProjectPath -ChildPath 'CHANGELOG.md'
@@ -143,19 +180,108 @@ Describe 'Module manifest' {
         }
 
         Context 'Module Dependency' -ForEach $dependencies {
-            # This ensures we keep our dependant modules in sync between the manifest file and the requirements
+            # This ensures we keep our dependent modules in sync between the manifest file and the requirements
             # script used to bootstrap and test.
             BeforeAll {
-                $requirementsPath = Join-Path -Path $Env:BHProjectPath -Child 'requirements.psd1'
-                $requirements = Import-PowerShellDataFile $requirementsPath
+                $dependencyName = $_.Name
+                $dependencyRawData = $manifestRawData.RequiredModules | Where-Object {
+                    $_ -eq $dependencyName -or $_.ModuleName -eq $dependencyName
+                }
+                # Ensure exactly one match - duplicates should fail, not silently skip
+                if (@($dependencyRawData).Count -gt 1) {
+                    throw "Duplicate RequiredModules entry found for '$dependencyName'"
+                }
+                # Handle plain-string module references (not hashtables with version info)
+                if ($dependencyRawData -isnot [hashtable]) {
+                    $dependencyRawData = $null
+                }
+
+                # Extract version from requirements.psd1 (shared logic for all version constraint tests)
+                $requirementsVersionSkipReason = $null
+                $requirementsVersion = $null
+
+                if (-not $requirements.ContainsKey($dependencyName)) {
+                    $requirementsVersionSkipReason = 'dependency not found in requirements.psd1'
+                } elseif ($requirements.Item($dependencyName) -is [string]) {
+                    # Plain string format: 'ModuleName' = '1.2.3'
+                    $requirementsVersion = $requirements.Item($dependencyName)
+                } elseif ($requirements.Item($dependencyName) -is [hashtable] -and $requirements.Item($dependencyName).ContainsKey('Version')) {
+                    # Hashtable format: 'ModuleName' = @{ Version = '1.2.3' }
+                    $requirementsVersion = $requirements.Item($dependencyName).Version
+                } else {
+                    # Invalid format
+                    $requirementsVersionSkipReason = "requirements.psd1 entry for '$dependencyName' must be a string or hashtable with a Version key"
+                }
             }
 
-            It '<_.Name> exists in Requirements.psd1' {
-                $requirements.ContainsKey($_.Name) | Should -BeTrue
+            It '<_.Name> exists in requirements.psd1' {
+                $requirements.ContainsKey($dependencyName) | Should -BeTrue
             }
 
-            It '<_.Name> has matching version in the Requirements.psd1' {
-                [Version]$requirements.Item($_.Name).Version | Should -Be $_.Version
+            It '<_.Name> uses at least one version key' {
+                if ($null -eq $dependencyRawData) {
+                    Set-ItResult -Skipped -Because 'Plain-string module reference without version constraints'
+                }
+
+                # Valid dependency version keys
+                $validDependencyKeys = @(
+                    'ModuleVersion'    # Specifies a minimum acceptable version of the module
+                    'RequiredVersion'  # Specifies an exact, required version of the module
+                    'MaximumVersion'   # Specifies a maximum acceptable version of the module
+                )
+                $dependencyKeysUsed = $dependencyRawData.Keys | Where-Object { $_ -in $validDependencyKeys }
+                $dependencyKeysUsed.Count | Should -BeGreaterThan 0
+            }
+
+            It '<_.Name> has a matching required version in requirements.psd1' {
+                if ($null -eq $dependencyRawData -or -not $dependencyRawData.ContainsKey('RequiredVersion')) {
+                    Set-ItResult -Skipped -Because 'No RequiredVersion specified in the manifest'
+                }
+
+                if ($requirementsVersionSkipReason) {
+                    Set-ItResult -Skipped -Because $requirementsVersionSkipReason
+                }
+
+                $constraintParameters = @{
+                    ManifestVersion     = $dependencyRawData.RequiredVersion
+                    RequirementsVersion = $requirementsVersion
+                    Constraint          = 'Equal'
+                }
+                Test-VersionConstraint @constraintParameters | Should -BeTrue
+            }
+
+            It '<_.Name> has a maximum version greater than or equal to requirements.psd1' {
+                if ($null -eq $dependencyRawData -or -not $dependencyRawData.ContainsKey('MaximumVersion')) {
+                    Set-ItResult -Skipped -Because 'No MaximumVersion specified in the manifest'
+                }
+
+                if ($requirementsVersionSkipReason) {
+                    Set-ItResult -Skipped -Because $requirementsVersionSkipReason
+                }
+
+                $constraintParameters = @{
+                    ManifestVersion     = $dependencyRawData.MaximumVersion
+                    RequirementsVersion = $requirementsVersion
+                    Constraint          = 'GreaterOrEqual'
+                }
+                Test-VersionConstraint @constraintParameters | Should -BeTrue
+            }
+
+            It '<_.Name> has a minimum version at or below requirements.psd1' {
+                if ($null -eq $dependencyRawData -or -not $dependencyRawData.ContainsKey('ModuleVersion')) {
+                    Set-ItResult -Skipped -Because 'No ModuleVersion specified in the manifest'
+                }
+
+                if ($requirementsVersionSkipReason) {
+                    Set-ItResult -Skipped -Because $requirementsVersionSkipReason
+                }
+
+                $constraintParameters = @{
+                    ManifestVersion     = $dependencyRawData.ModuleVersion
+                    RequirementsVersion = $requirementsVersion
+                    Constraint          = 'LessOrEqual'
+                }
+                Test-VersionConstraint @constraintParameters | Should -BeTrue
             }
         }
     }
