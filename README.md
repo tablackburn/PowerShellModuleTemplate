@@ -117,6 +117,10 @@ The test suite runs against the `{{ModuleName}}` placeholder module to verify th
 - Git
 - (Optional) Docker for the devcontainer
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the template's version history. The template uses [Calendar Versioning](https://calver.org/) (`YYYY.MM.DD`) — the version reflects when a snapshot of the template was cut, not API compatibility.
+
 ## License
 
 [MIT](LICENSE)
