@@ -1,0 +1,19 @@
+# {{ModuleName}}
+
+## about_{{ModuleName}}
+
+## SHORT DESCRIPTION
+
+## LONG DESCRIPTION
+
+## EXAMPLES
+
+## NOTE
+
+## TROUBLESHOOTING NOTE
+
+## SEE ALSO
+
+## KEYWORDS
+
+-

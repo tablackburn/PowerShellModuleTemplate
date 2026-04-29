@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/v0.19.1/schema/markdownlint-cli2-config-schema.json",
+  "config": {
+    "MD013": {
+      "tables": false,
+      "code_blocks": false
+    },
+    "MD024": {
+      "siblings_only": true
+    }
+  },
+  "ignores": [
+    "AGENTS.md",
+    // Intentionally narrow: only ignores docs/en-US (platyPS-generated help) so that
+    // other markdown files in docs/ are still linted. No other language directories
+    // are expected.
+    "docs/en-US/**",
+    "instructions/**"
+  ]
+}
