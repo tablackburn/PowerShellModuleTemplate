@@ -86,6 +86,14 @@ BeforeDiscovery {
     }
     $manifestData = Test-ModuleManifest @testModuleManifestParameters
     $dependencies = $manifestData.RequiredModules
+
+    # When running on the un-initialized template, CHANGELOG.md tracks the template's
+    # CalVer version (YYYY.MM.DD), which deliberately decouples from the manifest's
+    # ModuleVersion. Skip the equality assertion in that case; downstream modules (post-init)
+    # keep the assertion. Marker: CHANGELOG.template.md exists only pre-init —
+    # Initialize-Template.ps1 moves it onto CHANGELOG.md during init. The marker survives
+    # the init substitution loop because no token in the path matches a {{Placeholder}}.
+    $isTemplate = Test-Path -LiteralPath (Join-Path -Path $Env:BHProjectPath -ChildPath 'CHANGELOG.template.md')
 }
 BeforeAll {
     # Check if the BHBuildOutput environment variable exists to determine if this test is running in a psake
@@ -180,7 +188,7 @@ Describe 'Module manifest' {
             $changelogVersion -as [Version] | Should -Not -BeNullOrEmpty
         }
 
-        It 'Changelog and manifest versions are the same' {
+        It 'Changelog and manifest versions are the same' -Skip:$isTemplate {
             $changelogVersion -as [Version] | Should -Be ( $manifestData.Version -as [Version] )
         }
 
