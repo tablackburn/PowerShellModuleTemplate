@@ -262,6 +262,31 @@ if (Test-Path -Path $templateModuleFolder) {
     Write-Host '  Renamed example function files' -ForegroundColor Green
 }
 
+# Rename files in docs/en-US/ that contain {{ModuleName}} placeholder (e.g., about_{{ModuleName}}.help.md)
+$docsFolder = Join-Path -Path $PSScriptRoot -ChildPath 'docs\en-US'
+if (Test-Path -Path $docsFolder) {
+    $docsFiles = Get-ChildItem -Path $docsFolder -File | Where-Object {
+        $_.Name -match '\{\{ModuleName\}\}'
+    }
+    foreach ($file in $docsFiles) {
+        $newName = $file.Name -replace '\{\{ModuleName\}\}', $ModuleName
+        Rename-Item -Path $file.FullName -NewName $newName
+        Write-Verbose "Renamed: $($file.Name) -> $newName"
+    }
+    if ($docsFiles) {
+        Write-Host "  Renamed docs/en-US files" -ForegroundColor Green
+    }
+}
+
+# Replace template-facing README.md with the module-facing README.template.md
+# (placeholders inside README.template.md were already substituted by the file-processing loop above)
+$readmeTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'README.template.md'
+$readmePath = Join-Path -Path $PSScriptRoot -ChildPath 'README.md'
+if (Test-Path -Path $readmeTemplate) {
+    Move-Item -Path $readmeTemplate -Destination $readmePath -Force
+    Write-Host '  Generated module README.md from template' -ForegroundColor Green
+}
+
 # Initialize Git repository if requested
 if (-not $NoGitInit) {
     $gitFolder = Join-Path -Path $PSScriptRoot -ChildPath '.git'
@@ -303,7 +328,7 @@ Write-Host '========================================' -ForegroundColor Green
 Write-Host ''
 Write-Host 'Next steps:' -ForegroundColor Cyan
 Write-Host "  1. Review the generated files in the $ModuleName folder"
-Write-Host '  2. Update the README.md with your project details'
+Write-Host '  2. Review README.md and adjust to taste'
 Write-Host '  3. Add your functions to the Public/ and Private/ folders'
 Write-Host '  4. Run ./build.ps1 -Task Test to verify everything works'
 Write-Host '  5. Push to your GitHub repository'
