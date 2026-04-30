@@ -28,7 +28,7 @@ own `CHANGELOG.md` (generated from `CHANGELOG.template.md` during init).
 ### Fixed
 
 - `tests/Help.tests.ps1`: replaced undefined `$parameterNames` with `$commandParameterNames` in the help-vs-code parameter check (was silently asserting against `$null`).
-- `{{ModuleName}}/{{ModuleName}}.psm1`: dot-source catch block now preserves the original `ErrorRecord` via bare `throw` (was `throw $_`, which wrapped the error).
+- `{{ModuleName}}/{{ModuleName}}.psm1`: dot-source catch block now preserves the original `ErrorRecord` via bare `throw`. Previously the catch threw a new string (`"Unable to dot source ..."`), which wrapped the original exception in a fresh `ErrorRecord` and lost the underlying stack trace.
 
 [Unreleased]: https://github.com/tablackburn/PowerShellModuleTemplate/compare/v2026.04.29...HEAD
 [2026.04.29]: https://github.com/tablackburn/PowerShellModuleTemplate/releases/tag/v2026.04.29
