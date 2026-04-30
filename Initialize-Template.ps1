@@ -242,8 +242,9 @@ if (Test-Path -Path $templateModuleFolder) {
     # Rename example function files
     $publicFolder = Join-Path -Path $moduleFolder -ChildPath 'Public'
     $privateFolder = Join-Path -Path $moduleFolder -ChildPath 'Private'
-    $testPublicFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests/Unit/Public'
-    $testPrivateFolder = Join-Path -Path $PSScriptRoot -ChildPath 'tests/Unit/Private'
+    $testUnitFolder = Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath 'tests') -ChildPath 'Unit'
+    $testPublicFolder = Join-Path -Path $testUnitFolder -ChildPath 'Public'
+    $testPrivateFolder = Join-Path -Path $testUnitFolder -ChildPath 'Private'
 
     $foldersToCheck = @($publicFolder, $privateFolder, $testPublicFolder, $testPrivateFolder)
 

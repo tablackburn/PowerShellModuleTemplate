@@ -56,13 +56,6 @@ jobs:
   unit-tests:
     name: Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    # Skip on the un-initialized template — Build's GENERATEMARKDOWN task
-    # can't import the manifest while {{GUID}} is still a literal placeholder.
-    # Marker: CHANGELOG.template.md exists only pre-init; Initialize-Template.ps1
-    # moves it onto CHANGELOG.md during init, so downstream repos run the full
-    # job. Path has no placeholder token, so init's substitution loop leaves it
-    # intact in this file.
-    if: hashFiles('CHANGELOG.template.md') == ''
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +63,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Skip subsequent steps on the un-initialized template — Build's
+      # GENERATEMARKDOWN task can't import the manifest while {{GUID}} is still
+      # a literal placeholder. Marker: CHANGELOG.template.md exists only
+      # pre-init; Initialize-Template.ps1 moves it onto CHANGELOG.md during
+      # init, so downstream repos run the full job. The marker path contains
+      # no placeholder token, so init's substitution loop leaves this guard
+      # intact when the workflow is copied into a new module.
+      # hashFiles() is not allowed in jobs.<job_id>.if, so we evaluate it in a
+      # step and gate downstream steps on the resulting output.
+      - name: Detect template state
+        id: template_guard
+        shell: bash
+        run: |
+          if [ -f CHANGELOG.template.md ]; then
+            echo "is_template=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_template=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Cache PowerShell modules
+        if: steps.template_guard.outputs.is_template == 'false'
         uses: actions/cache@v5
         with:
           path: |
@@ -81,14 +94,15 @@ jobs:
             ${{ runner.os }}-psmodules-
 
       - name: Build and Test
+        if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
         run: |
           New-Item -Path out -ItemType Directory -Force | Out-Null
           ./build.ps1 -Task Build,Test -Bootstrap
 
       - name: Upload Coverage to Codecov
+        if: success() && steps.template_guard.outputs.is_template == 'false'
         uses: codecov/codecov-action@v6
-        if: success()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: out/codeCoverage.xml
@@ -96,8 +110,8 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload Test Results
+        if: always() && steps.template_guard.outputs.is_template == 'false'
         uses: actions/upload-artifact@v7
-        if: always()
         with:
           name: test-results-${{ matrix.os }}
           path: out/

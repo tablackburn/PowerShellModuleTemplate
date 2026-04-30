@@ -15,17 +15,32 @@ jobs:
   publish:
     name: Publish Module
     runs-on: ubuntu-latest
-    # Never publish the un-initialized template — the .psd1 still has
-    # {{ModuleName}} and {{GUID}} placeholders. Same marker as CI.yaml.
-    if: hashFiles('CHANGELOG.template.md') == ''
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      # Never publish the un-initialized template — the .psd1 still has
+      # {{ModuleName}} and {{GUID}} placeholders. Same marker as CI.yaml:
+      # CHANGELOG.template.md exists only pre-init. hashFiles() is not allowed
+      # in jobs.<job_id>.if, so we evaluate it in a step and gate the
+      # version-detection and release-check steps on the resulting output;
+      # everything downstream cascades on those steps' outputs and skips
+      # naturally when they don't run.
+      - name: Detect template state
+        id: template_guard
+        shell: bash
+        run: |
+          if [ -f CHANGELOG.template.md ]; then
+            echo "is_template=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_template=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Get Module Version
         id: version
+        if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
         run: |
           $manifest = Import-PowerShellDataFile -Path ./{{ModuleName}}/{{ModuleName}}.psd1
@@ -35,6 +50,7 @@ jobs:
 
       - name: Check if Release Exists
         id: check_release
+        if: steps.template_guard.outputs.is_template == 'false'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
