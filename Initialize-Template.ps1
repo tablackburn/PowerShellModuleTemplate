@@ -180,6 +180,7 @@ $filesToProcess = Get-ChildItem -Path $PSScriptRoot -Recurse -File | Where-Objec
     $_.FullName -notmatch '[\\/]Output[\\/]' -and
     $_.FullName -notmatch '[\\/]out[\\/]' -and
     $_.Name -ne 'Initialize-Template.ps1' -and
+    $_.Name -ne 'CHANGELOG.md' -and
     $_.Extension -in @('.ps1', '.psm1', '.psd1', '.md', '.json', '.yml', '.yaml', '.xml', '.txt', '')
 }
 
@@ -285,6 +286,15 @@ $readmePath = Join-Path -Path $PSScriptRoot -ChildPath 'README.md'
 if (Test-Path -Path $readmeTemplate) {
     Move-Item -Path $readmeTemplate -Destination $readmePath -Force
     Write-Host '  Generated module README.md from template' -ForegroundColor Green
+}
+
+# Replace template-facing CHANGELOG.md with the module-facing CHANGELOG.template.md
+# (placeholders inside CHANGELOG.template.md were already substituted by the file-processing loop above)
+$changelogTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.template.md'
+$changelogPath = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.md'
+if (Test-Path -Path $changelogTemplate) {
+    Move-Item -Path $changelogTemplate -Destination $changelogPath -Force
+    Write-Host '  Generated module CHANGELOG.md from template' -ForegroundColor Green
 }
 
 # Initialize Git repository if requested
