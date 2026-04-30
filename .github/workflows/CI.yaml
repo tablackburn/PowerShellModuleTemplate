@@ -18,7 +18,23 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Skip lint on the un-initialized template — the literal `./{{ModuleName}}`
+      # path argument can't be parsed by PowerShell (the double braces split into
+      # mismatched script-block delimiters), so Invoke-ScriptAnalyzer fails with
+      # a positional-argument error before it ever touches the folder. Same
+      # marker as the unit-tests job below.
+      - name: Detect template state
+        id: template_guard
+        shell: bash
+        run: |
+          if [ -f CHANGELOG.template.md ]; then
+            echo "is_template=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_template=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Cache PowerShell modules
+        if: steps.template_guard.outputs.is_template == 'false'
         id: cache-lint-modules
         uses: actions/cache@v5
         with:
@@ -28,13 +44,14 @@ jobs:
             ${{ runner.os }}-psmodules-lint-
 
       - name: Install PSScriptAnalyzer
-        if: steps.cache-lint-modules.outputs.cache-hit != 'true'
+        if: steps.template_guard.outputs.is_template == 'false' && steps.cache-lint-modules.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
       - name: Run PSScriptAnalyzer
+        if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
         run: |
           $results = Invoke-ScriptAnalyzer -Path ./{{ModuleName}} -Recurse -Settings PSGallery -ReportSummary
