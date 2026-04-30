@@ -281,21 +281,34 @@ if (Test-Path -Path $docsFolder) {
 }
 
 # Replace template-facing README.md with the module-facing README.template.md
-# (placeholders inside README.template.md were already substituted by the file-processing loop above)
+# (placeholders inside README.template.md were already substituted by the file-processing loop above).
+# If the destination already exists (e.g., the user is re-running init after customizing it),
+# leave both files in place and warn — manually resolving is safer than overwriting customizations.
 $readmeTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'README.template.md'
 $readmePath = Join-Path -Path $PSScriptRoot -ChildPath 'README.md'
 if (Test-Path -Path $readmeTemplate) {
-    Move-Item -Path $readmeTemplate -Destination $readmePath -Force
-    Write-Host '  Generated module README.md from template' -ForegroundColor Green
+    if (Test-Path -Path $readmePath) {
+        Write-Warning '  README.md already exists; leaving it in place. Resolve README.template.md manually.'
+    }
+    else {
+        Move-Item -Path $readmeTemplate -Destination $readmePath
+        Write-Host '  Generated module README.md from template' -ForegroundColor Green
+    }
 }
 
 # Replace template-facing CHANGELOG.md with the module-facing CHANGELOG.template.md
-# (placeholders inside CHANGELOG.template.md were already substituted by the file-processing loop above)
+# (placeholders inside CHANGELOG.template.md were already substituted by the file-processing loop above).
+# Same guard as README above — preserve any existing CHANGELOG.md rather than clobber it.
 $changelogTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.template.md'
 $changelogPath = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.md'
 if (Test-Path -Path $changelogTemplate) {
-    Move-Item -Path $changelogTemplate -Destination $changelogPath -Force
-    Write-Host '  Generated module CHANGELOG.md from template' -ForegroundColor Green
+    if (Test-Path -Path $changelogPath) {
+        Write-Warning '  CHANGELOG.md already exists; leaving it in place. Resolve CHANGELOG.template.md manually.'
+    }
+    else {
+        Move-Item -Path $changelogTemplate -Destination $changelogPath
+        Write-Host '  Generated module CHANGELOG.md from template' -ForegroundColor Green
+    }
 }
 
 # Initialize Git repository if requested
