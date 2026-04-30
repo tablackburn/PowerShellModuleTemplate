@@ -362,7 +362,8 @@ Write-Host "  1. Review the generated files in the $ModuleName folder"
 Write-Host '  2. Review README.md and adjust to taste'
 Write-Host '  3. Add your functions to the Public/ and Private/ folders'
 Write-Host '  4. Run ./build.ps1 -Task Test to verify everything works'
-Write-Host '  5. Push to your GitHub repository'
+Write-Host '  5. Configure GitHub repository secrets (see "Repository secrets" in README.md)'
+Write-Host '  6. Push to your GitHub repository'
 Write-Host ''
 Write-Host 'You can safely delete this Initialize-Template.ps1 file.' -ForegroundColor Yellow
 Write-Host ''
