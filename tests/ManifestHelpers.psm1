@@ -123,9 +123,10 @@ function Compare-SemVerPrerelease {
 
         if ($firstIsNumeric -and $secondIsNumeric) {
             # SemVer 2.0.0 permits arbitrarily large numeric identifiers — use BigInteger
-            # rather than [long] to avoid overflow.
-            $firstNum = [bigint]$firstId
-            $secondNum = [bigint]$secondId
+            # rather than [long] to avoid overflow. [bigint] is a PS 7+ accelerator only,
+            # so spell out the full type for Windows PowerShell 5.1 compatibility.
+            $firstNum = [System.Numerics.BigInteger]$firstId
+            $secondNum = [System.Numerics.BigInteger]$secondId
 
             if ($firstNum -lt $secondNum) {
                 return -1
