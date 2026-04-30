@@ -119,9 +119,15 @@ Write-Host '  PowerShell Module Template Setup' -ForegroundColor Cyan
 Write-Host '========================================' -ForegroundColor Cyan
 Write-Host ''
 
-# Check if template has already been initialized
+# Check if template has already been initialized.
+# The {{ModuleName}} folder is the most reliable signal: it only exists pre-init.
+# Capture the answer here so the README/CHANGELOG move blocks below can distinguish
+# a first-run (template-facing README.md present alongside README.template.md;
+# overwrite is correct) from a re-run with template files reappearing (user-customized
+# README.md present alongside a re-introduced README.template.md; preserve user content).
 $templateModuleFolder = Join-Path -Path $PSScriptRoot -ChildPath '{{ModuleName}}'
-if (-not (Test-Path -Path $templateModuleFolder)) {
+$wasAlreadyInitialized = -not (Test-Path -Path $templateModuleFolder)
+if ($wasAlreadyInitialized) {
     Write-Warning 'This template appears to have already been initialized.'
     Write-Warning 'The {{ModuleName}} folder was not found.'
     $continue = Read-Host -Prompt 'Continue anyway? (y/N)'
@@ -282,31 +288,32 @@ if (Test-Path -Path $docsFolder) {
 
 # Replace template-facing README.md with the module-facing README.template.md
 # (placeholders inside README.template.md were already substituted by the file-processing loop above).
-# If the destination already exists (e.g., the user is re-running init after customizing it),
-# leave both files in place and warn — manually resolving is safer than overwriting customizations.
+# On a first init both files exist (template-facing README.md and module-facing
+# README.template.md) — overwrite is correct. Only preserve the destination when this
+# is a re-run AND the destination is present, since that means the user has customized it.
 $readmeTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'README.template.md'
 $readmePath = Join-Path -Path $PSScriptRoot -ChildPath 'README.md'
 if (Test-Path -Path $readmeTemplate) {
-    if (Test-Path -Path $readmePath) {
+    if ($wasAlreadyInitialized -and (Test-Path -Path $readmePath)) {
         Write-Warning '  README.md already exists; leaving it in place. Resolve README.template.md manually.'
     }
     else {
-        Move-Item -Path $readmeTemplate -Destination $readmePath
+        Move-Item -Path $readmeTemplate -Destination $readmePath -Force
         Write-Host '  Generated module README.md from template' -ForegroundColor Green
     }
 }
 
 # Replace template-facing CHANGELOG.md with the module-facing CHANGELOG.template.md
 # (placeholders inside CHANGELOG.template.md were already substituted by the file-processing loop above).
-# Same guard as README above — preserve any existing CHANGELOG.md rather than clobber it.
+# Same guard as README above — preserve only on a re-run with destination present.
 $changelogTemplate = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.template.md'
 $changelogPath = Join-Path -Path $PSScriptRoot -ChildPath 'CHANGELOG.md'
 if (Test-Path -Path $changelogTemplate) {
-    if (Test-Path -Path $changelogPath) {
+    if ($wasAlreadyInitialized -and (Test-Path -Path $changelogPath)) {
         Write-Warning '  CHANGELOG.md already exists; leaving it in place. Resolve CHANGELOG.template.md manually.'
     }
     else {
-        Move-Item -Path $changelogTemplate -Destination $changelogPath
+        Move-Item -Path $changelogTemplate -Destination $changelogPath -Force
         Write-Host '  Generated module CHANGELOG.md from template' -ForegroundColor Green
     }
 }
