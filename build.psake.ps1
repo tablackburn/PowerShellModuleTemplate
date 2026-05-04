@@ -19,8 +19,11 @@ properties {
     # against those paths. $Env:BHBuildOutput points at <root>/BuildOutput at
     # properties-evaluation time (PowerShellBuild rewrites it later inside its
     # tasks), so we compute the staged path from the manifest version here.
+    if (-not $Env:BHPSModuleManifest -or -not $Env:BHProjectName) {
+        throw 'Coverage configuration requires BuildHelpers env vars. Run via ./build.ps1 or call Set-BuildEnvironment first.'
+    }
     $_moduleVersion = (Import-PowerShellDataFile -Path $Env:BHPSModuleManifest).ModuleVersion
-    $_stagedOutput = Join-Path $PSScriptRoot "Output/$Env:BHProjectName/$_moduleVersion"
+    $_stagedOutput = [IO.Path]::Combine($PSScriptRoot, 'Output', $Env:BHProjectName, $_moduleVersion)
     $PSBPreference.Test.CodeCoverage.Files = @(
         "$_stagedOutput/Public/*.ps1"
         "$_stagedOutput/Private/*.ps1"
