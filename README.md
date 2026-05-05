@@ -60,6 +60,21 @@ A GitHub repository template for building, testing, and publishing PowerShell mo
    ```
 
 4. The script substitutes placeholders, renames files, optionally runs `git init`, and bootstraps build dependencies. Delete `Initialize-Template.ps1` when done.
+5. Configure your new repository's GitHub Actions secrets — the bundled CI/CD workflows expect a few secrets to be set. See [Repository secrets](#repository-secrets) below.
+
+## Repository secrets
+
+The bundled GitHub Actions workflows expect the following secrets to be set in your repository under **Settings → Secrets and variables → Actions**:
+
+| Secret | Workflow | Required? | Source | Failure if missing |
+|---|---|---|---|---|
+| `PS_GALLERY_KEY` | `PublishModuleToPowerShellGallery.yaml` | Required to publish | [PowerShell Gallery API keys](https://www.powershellgallery.com/account/apikeys) (scope to your module name) | Publish job fails at the PowerShellBuild authentication assertion |
+| `CODECOV_TOKEN` | `CI.yaml` | Optional | [Codecov](https://about.codecov.io/) after linking the repository | Coverage upload step is gated with `fail_ci_if_error: false`, so CI still passes — no coverage data is uploaded |
+| `GITGUARDIAN_API_KEY` | `ggshield.yaml` | Required for that workflow to pass | [GitGuardian dashboard](https://dashboard.gitguardian.com/) (free tier available) | Workflow fails on every push with "Invalid GitGuardian API key" |
+
+`GITHUB_TOKEN` is automatically provided by GitHub Actions and does not need to be set.
+
+The publish workflow exposes `secrets.PS_GALLERY_KEY` to its job as the env var `PSGALLERY_API_KEY` — the variable PowerShellBuild reads when publishing. Set the secret as `PS_GALLERY_KEY`.
 
 ## Placeholders
 

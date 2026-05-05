@@ -10,6 +10,11 @@ own `CHANGELOG.md` (generated from `CHANGELOG.template.md` during init).
 
 ## [Unreleased]
 
+### Added
+
+- "Repository secrets" section in `README.md` documenting the GitHub Actions secrets the bundled workflows expect (`PS_GALLERY_KEY`, `CODECOV_TOKEN`, `GITGUARDIAN_API_KEY`) — required vs. optional, source, and failure mode when missing.
+- `Initialize-Template.ps1` now mentions configuring GitHub repository secrets in its post-init "Next steps" output, between the build-test step and the first push.
+
 ## [2026.04.29] - 2026-04-29
 
 ### Added
