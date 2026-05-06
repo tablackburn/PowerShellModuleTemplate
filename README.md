@@ -51,12 +51,14 @@ A GitHub repository template for building, testing, and publishing PowerShell mo
    You'll be prompted for module name, function prefix, author, description, and project URL. Pass them as parameters for non-interactive use:
 
    ```powershell
-   ./Initialize-Template.ps1 `
-       -ModuleName 'MyAwesomeModule' `
-       -Prefix 'Mam' `
-       -Author 'Jane Doe' `
-       -Description 'Does awesome things' `
-       -ProjectUri 'https://github.com/janedoe/MyAwesomeModule'
+   $templateParameters = @{
+       ModuleName  = 'MyAwesomeModule'
+       Prefix      = 'Mam'
+       Author      = 'Jane Doe'
+       Description = 'Does awesome things'
+       ProjectUri  = 'https://github.com/janedoe/MyAwesomeModule'
+   }
+   ./Initialize-Template.ps1 @templateParameters
    ```
 
 4. The script substitutes placeholders, renames files, optionally runs `git init`, and bootstraps build dependencies. Delete `Initialize-Template.ps1` when done.
