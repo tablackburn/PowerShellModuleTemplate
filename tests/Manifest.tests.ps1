@@ -69,10 +69,10 @@ BeforeDiscovery {
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/, override BHBuildOutput
-    $projectRoot = Split-Path -Parent $PSScriptRoot
-    $sourceManifest = Join-Path $projectRoot "$Env:BHProjectName/$Env:BHProjectName.psd1"
+    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
+    $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile -Path $sourceManifest).ModuleVersion
-    $Env:BHBuildOutput = Join-Path $projectRoot "Output/$Env:BHProjectName/$moduleVersion"
+    $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
 
     # Define the path to the module manifest
     $moduleManifestFilename = $Env:BHProjectName + '.psd1'
@@ -108,10 +108,10 @@ BeforeAll {
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/, override BHBuildOutput
-    $projectRoot = Split-Path -Parent $PSScriptRoot
-    $sourceManifest = Join-Path $projectRoot "$Env:BHProjectName/$Env:BHProjectName.psd1"
+    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
+    $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile -Path $sourceManifest).ModuleVersion
-    $Env:BHBuildOutput = Join-Path $projectRoot "Output/$Env:BHProjectName/$moduleVersion"
+    $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
 
     # Define the path to the module manifest
     $moduleManifestFilename = $Env:BHProjectName + '.psd1'
@@ -135,12 +135,12 @@ BeforeAll {
     Import-Module -Name (Join-Path -Path $PSScriptRoot -ChildPath 'ManifestHelpers.psm1') -Verbose:$false -Force
 
     $requirementsPath = Join-Path -Path $env:BHProjectPath -ChildPath 'requirements.psd1'
-    $requirements = Import-PowerShellDataFile -Path $requirementsPath -ErrorAction Stop
+    $requirements = Import-PowerShellDataFile -Path $requirementsPath -ErrorAction 'Stop'
 
     # Parse the version from the changelog
     $changelogPath = Join-Path -Path $Env:BHProjectPath -ChildPath 'CHANGELOG.md'
     $changelogVersionPattern = '^##\s\\?\[(?<Version>(\d+\.){1,3}\d+)\\?\]' # Matches on a line that starts with '## [Version]' or '## \[Version\]'
-    $changelogVersion = Get-Content $changelogPath | ForEach-Object {
+    $changelogVersion = Get-Content -Path $changelogPath | ForEach-Object {
         if ($_ -match $changelogVersionPattern) {
             $changelogVersion = $matches.Version
             break

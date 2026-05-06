@@ -36,11 +36,12 @@ function Split-SemVerString {
     [OutputType([hashtable])]
     param(
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$VersionString
     )
 
     if ([string]::IsNullOrEmpty($VersionString)) {
-        throw "VersionString cannot be empty or null"
+        throw 'VersionString cannot be empty or null'
     }
 
     # Strip build metadata per SemVer 2.0.0 — it does not affect precedence and is
@@ -92,9 +93,11 @@ function Compare-SemVerPrerelease {
     [OutputType([int])]
     param(
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$FirstPrerelease,
 
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$SecondPrerelease
     )
 
@@ -208,6 +211,7 @@ function Test-VersionComparison {
     [OutputType([bool])]
     param(
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$FirstVersion,
 
         [Parameter(Mandatory = $false)]
@@ -215,6 +219,7 @@ function Test-VersionComparison {
         [string]$FirstPrerelease,
 
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$SecondVersion,
 
         [Parameter(Mandatory = $false)]
@@ -325,9 +330,11 @@ function Test-VersionConstraint {
     [OutputType([bool])]
     param(
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$ManifestVersion,
 
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string]$RequirementsVersion,
 
         [Parameter(Mandatory = $true)]
@@ -337,14 +344,14 @@ function Test-VersionConstraint {
 
     # Validate input versions are not empty
     if ([string]::IsNullOrWhiteSpace($ManifestVersion)) {
-        throw "ManifestVersion cannot be empty or whitespace"
+        throw 'ManifestVersion cannot be empty or whitespace'
     }
     if ([string]::IsNullOrWhiteSpace($RequirementsVersion)) {
-        throw "RequirementsVersion cannot be empty or whitespace"
+        throw 'RequirementsVersion cannot be empty or whitespace'
     }
 
-    $manifestParts = Split-SemVerString $ManifestVersion
-    $requirementsParts = Split-SemVerString $RequirementsVersion
+    $manifestParts = Split-SemVerString -VersionString $ManifestVersion
+    $requirementsParts = Split-SemVerString -VersionString $RequirementsVersion
 
     $comparisonParameters = @{
         FirstVersion     = $requirementsParts.Version
