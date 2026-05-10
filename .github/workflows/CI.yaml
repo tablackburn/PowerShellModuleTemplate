@@ -118,7 +118,7 @@ jobs:
           ./build.ps1 -Task Build,Test -Bootstrap
 
       - name: Upload Coverage to Codecov
-        if: success() && steps.template_guard.outputs.is_template == 'false'
+        if: success() && steps.template_guard.outputs.is_template == 'false' && secrets.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

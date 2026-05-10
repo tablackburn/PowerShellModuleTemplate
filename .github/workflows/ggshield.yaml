@@ -8,8 +8,12 @@ jobs:
   scanning:
     name: GitGuardian Scan
     runs-on: ubuntu-latest
-    # Skip for Dependabot PRs - they don't have access to secrets and only update dependencies
-    if: github.actor != 'dependabot[bot]'
+    # Skip when:
+    #   - Dependabot PR (no secret access, only updates dependencies)
+    #   - GITGUARDIAN_API_KEY not configured (graceful skip for newly-init'd repos
+    #     before the secret is set; Dependabot also lands here because it has no
+    #     secret access, but the explicit actor check above is kept for clarity)
+    if: github.actor != 'dependabot[bot]' && secrets.GITGUARDIAN_API_KEY != ''
     steps:
       - uses: actions/checkout@v6
         with:
