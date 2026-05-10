@@ -17,16 +17,16 @@ BeforeDiscovery {
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/
-    $projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
-    $sourceManifest = Join-Path $projectRoot "$Env:BHProjectName/$Env:BHProjectName.psd1"
+    $projectRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
+    $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile -Path $sourceManifest).ModuleVersion
-    $Env:BHBuildOutput = Join-Path $projectRoot "Output/$Env:BHProjectName/$moduleVersion"
+    $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
 }
 
 BeforeAll {
     # Import the module from the build output
     $moduleManifestPath = Join-Path -Path $Env:BHBuildOutput -ChildPath "$Env:BHProjectName.psd1"
-    Get-Module $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
+    Get-Module -Name $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
     Import-Module -Name $moduleManifestPath -Force -ErrorAction 'Stop'
 }
 

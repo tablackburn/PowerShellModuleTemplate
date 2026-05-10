@@ -37,7 +37,7 @@ function Get-{{Prefix}}Example {
     )
 
     begin {
-        Write-Verbose "Starting Get-{{Prefix}}Example"
+        Write-Verbose 'Starting Get-{{Prefix}}Example'
     }
 
     process {
@@ -51,6 +51,6 @@ function Get-{{Prefix}}Example {
     }
 
     end {
-        Write-Verbose "Completed Get-{{Prefix}}Example"
+        Write-Verbose 'Completed Get-{{Prefix}}Example'
     }
 }
