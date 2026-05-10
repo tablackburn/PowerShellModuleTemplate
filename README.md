@@ -70,13 +70,13 @@ The bundled GitHub Actions workflows expect the following secrets to be set in y
 
 | Secret | Workflow | Required? | Source | Failure if missing |
 |---|---|---|---|---|
-| `PS_GALLERY_KEY` | `PublishModuleToPowerShellGallery.yaml` | Required to publish | [PowerShell Gallery API keys](https://www.powershellgallery.com/account/apikeys) (scope to your module name) | Publish job fails at the PowerShellBuild authentication assertion |
+| `PSGALLERY_API_KEY` | `PublishModuleToPowerShellGallery.yaml` | Required to publish | [PowerShell Gallery API keys](https://www.powershellgallery.com/account/apikeys) (scope to your module name) | Publish job fails at the PowerShellBuild authentication assertion |
 | `CODECOV_TOKEN` | `CI.yaml` | Optional | [Codecov](https://about.codecov.io/) after linking the repository | Coverage upload step is gated with `fail_ci_if_error: false`, so CI still passes — no coverage data is uploaded |
 | `GITGUARDIAN_API_KEY` | `ggshield.yaml` | Required for that workflow to pass | [GitGuardian dashboard](https://dashboard.gitguardian.com/) (free tier available) | Workflow fails on every push with "Invalid GitGuardian API key" |
 
 `GITHUB_TOKEN` is automatically provided by GitHub Actions and does not need to be set.
 
-The publish workflow exposes `secrets.PS_GALLERY_KEY` to its job as the env var `PSGALLERY_API_KEY` — the variable PowerShellBuild reads when publishing. Set the secret as `PS_GALLERY_KEY`.
+The publish workflow exposes this secret to its job under the same env var name (`PSGALLERY_API_KEY`), which is the variable PowerShellBuild reads.
 
 ## Placeholders
 
