@@ -12,8 +12,12 @@ own `CHANGELOG.md` (generated from `CHANGELOG.template.md` during init).
 
 ### Added
 
-- "Repository secrets" section in `README.md` documenting the GitHub Actions secrets the bundled workflows expect (`PS_GALLERY_KEY`, `CODECOV_TOKEN`, `GITGUARDIAN_API_KEY`) — required vs. optional, source, and failure mode when missing.
+- "Repository secrets" section in `README.md` documenting the GitHub Actions secrets the bundled workflows expect (`PSGALLERY_API_KEY`, `CODECOV_TOKEN`, `GITGUARDIAN_API_KEY`) — required vs. optional, source, and failure mode when missing.
 - `Initialize-Template.ps1` now mentions configuring GitHub repository secrets in its post-init "Next steps" output, between the build-test step and the first push.
+
+### Changed
+
+- Renamed required PowerShell Gallery publish secret `PS_GALLERY_KEY` → `PSGALLERY_API_KEY` so the secret name matches the env var name PowerShellBuild reads (eliminating the previous mapping caveat). New modules created from the template after this change pick up the new name automatically. **Migration for existing modules:** create a new `PSGALLERY_API_KEY` repo secret with the same value, update `.github/workflows/PublishModuleToPowerShellGallery.yaml` to reference `secrets.PSGALLERY_API_KEY`, then delete the old `PS_GALLERY_KEY` secret.
 
 ## [2026.04.29] - 2026-04-29
 
