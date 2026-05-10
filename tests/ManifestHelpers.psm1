@@ -40,10 +40,6 @@ function Split-SemVerString {
         [string]$VersionString
     )
 
-    if ([string]::IsNullOrEmpty($VersionString)) {
-        throw 'VersionString cannot be empty or null'
-    }
-
     # Strip build metadata per SemVer 2.0.0 — it does not affect precedence and is
     # not valid for [System.Version], so it must be removed before further parsing.
     $coreVersion = ($VersionString -split '\+', 2)[0]
