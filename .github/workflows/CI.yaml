@@ -118,10 +118,12 @@ jobs:
           ./build.ps1 -Task Build,Test -Bootstrap
 
       - name: Upload Coverage to Codecov
-        if: success() && steps.template_guard.outputs.is_template == 'false' && secrets.CODECOV_TOKEN != ''
+        if: success() && steps.template_guard.outputs.is_template == 'false' && env.CODECOV_TOKEN != ''
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         uses: codecov/codecov-action@v6
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           files: out/codeCoverage.xml
           flags: ${{ matrix.os }}
           fail_ci_if_error: false
