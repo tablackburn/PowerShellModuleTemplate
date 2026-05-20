@@ -133,7 +133,9 @@ jobs:
               # Append a compare link against the most recent existing tag. The v$version
               # tag does not exist yet (this step creates it), so the latest tag is the
               # previous release.
-              $previousTag = git tag --list 'v*' --sort=-version:refname | Select-Object -First 1
+              $previousTag = git tag --list 'v*' --sort=-version:refname |
+                  Where-Object { $_ -ne "v$version" } |
+                  Select-Object -First 1
               if ($previousTag) {
                   $body += "`n`n**Full Changelog**: https://github.com/$env:REPOSITORY/compare/$previousTag...v$version"
               }
