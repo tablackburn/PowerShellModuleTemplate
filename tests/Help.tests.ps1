@@ -115,6 +115,7 @@ Describe "Test help for <_.Name>" -ForEach $commands {
         # below; they must also exist here because the nested Context blocks use them in
         # -ForEach, which Pester evaluates during discovery (before BeforeAll runs).
         $command               = $_
+        $commandName           = $command.Name
         $commandHelp           = Get-Help -Name $command.Name -ErrorAction 'SilentlyContinue'
         $commandParameters     = global:FilterOutCommonParameters -Parameters $command.ParameterSets.Parameters
         $commandParameterNames = $commandParameters.Name
