@@ -19,15 +19,15 @@ BeforeDiscovery {
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/
     $projectRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
-    $moduleVersion = (Import-PowerShellDataFile -Path $sourceManifest).ModuleVersion
+    $moduleVersion = (Import-PowerShellDataFile $sourceManifest).ModuleVersion
     $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
 }
 
 BeforeAll {
     # Import the module from the build output
     $moduleManifestPath = Join-Path -Path $Env:BHBuildOutput -ChildPath "$Env:BHProjectName.psd1"
-    Get-Module -Name $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
-    Import-Module -Name $moduleManifestPath -Force -ErrorAction 'Stop'
+    Get-Module $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
+    Import-Module $moduleManifestPath -Force -ErrorAction 'Stop'
 }
 
 InModuleScope -ModuleName $Env:BHProjectName -ScriptBlock {
@@ -36,12 +36,12 @@ InModuleScope -ModuleName $Env:BHProjectName -ScriptBlock {
         Context 'Basic functionality' {
 
             It 'Returns the processed message' {
-                $result = Invoke-{{Prefix}}Helper -Message 'Test message'
+                $result = Invoke-{{Prefix}}Helper 'Test message'
                 $result | Should -Be 'Test message'
             }
 
             It 'Trims whitespace from message' {
-                $result = Invoke-{{Prefix}}Helper -Message '  Test message  '
+                $result = Invoke-{{Prefix}}Helper '  Test message  '
                 $result | Should -Be 'Test message'
             }
         }
@@ -49,18 +49,18 @@ InModuleScope -ModuleName $Env:BHProjectName -ScriptBlock {
         Context 'Parameter validation' {
 
             It 'Throws on empty message' {
-                { Invoke-{{Prefix}}Helper -Message '' } | Should -Throw
+                { Invoke-{{Prefix}}Helper '' } | Should -Throw
             }
 
             It 'Throws on null message' {
-                { Invoke-{{Prefix}}Helper -Message $null } | Should -Throw
+                { Invoke-{{Prefix}}Helper $null } | Should -Throw
             }
         }
 
         Context 'Verbose output' {
 
             It 'Writes verbose messages when -Verbose is specified' {
-                $verboseOutput = Invoke-{{Prefix}}Helper -Message 'Test' -Verbose 4>&1
+                $verboseOutput = Invoke-{{Prefix}}Helper 'Test' -Verbose 4>&1
                 $verboseOutput | Should -Not -BeNullOrEmpty
             }
         }
