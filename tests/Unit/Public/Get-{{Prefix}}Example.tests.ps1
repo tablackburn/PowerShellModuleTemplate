@@ -19,15 +19,15 @@ BeforeDiscovery {
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/
     $projectRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
-    $moduleVersion = (Import-PowerShellDataFile -Path $sourceManifest).ModuleVersion
+    $moduleVersion = (Import-PowerShellDataFile $sourceManifest).ModuleVersion
     $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
 }
 
 BeforeAll {
     # Import the module from the build output
     $moduleManifestPath = Join-Path -Path $Env:BHBuildOutput -ChildPath "$Env:BHProjectName.psd1"
-    Get-Module -Name $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
-    Import-Module -Name $moduleManifestPath -Force -ErrorAction 'Stop'
+    Get-Module $Env:BHProjectName | Remove-Module -Force -ErrorAction 'Ignore'
+    Import-Module $moduleManifestPath -Force -ErrorAction 'Stop'
 }
 
 Describe 'Get-{{Prefix}}Example' {
@@ -40,7 +40,7 @@ Describe 'Get-{{Prefix}}Example' {
         }
 
         It 'Returns a greeting with specified name' {
-            $result = Get-{{Prefix}}Example -Name 'PowerShell'
+            $result = Get-{{Prefix}}Example 'PowerShell'
             $result | Should -Be 'Hello, PowerShell!'
         }
 
@@ -53,18 +53,18 @@ Describe 'Get-{{Prefix}}Example' {
     Context 'Parameter validation' {
 
         It 'Throws on empty name' {
-            { Get-{{Prefix}}Example -Name '' } | Should -Throw
+            { Get-{{Prefix}}Example '' } | Should -Throw
         }
 
         It 'Throws on null name' {
-            { Get-{{Prefix}}Example -Name $null } | Should -Throw
+            { Get-{{Prefix}}Example $null } | Should -Throw
         }
     }
 
     Context 'Verbose output' {
 
         It 'Writes verbose messages when -Verbose is specified' {
-            $verboseOutput = Get-{{Prefix}}Example -Name 'Test' -Verbose 4>&1
+            $verboseOutput = Get-{{Prefix}}Example 'Test' -Verbose 4>&1
             $verboseOutput | Should -Not -BeNullOrEmpty
         }
     }
