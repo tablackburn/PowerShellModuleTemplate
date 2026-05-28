@@ -142,8 +142,14 @@ BeforeAll {
     $changelogVersionPattern = '^##\s\\?\[(?<Version>(\d+\.){1,3}\d+)\\?\]' # Matches on a line that starts with '## [Version]' or '## \[Version\]'
     # Select-String returns the first matching line's named capture directly — no loop and no
     # 'break' (which is unreliable inside ForEach-Object, since a pipeline is not a loop).
-    $changelogVersion = (Select-String -Path $changelogPath -Pattern $changelogVersionPattern |
-        Select-Object -First 1).Matches[0].Groups['Version'].Value
+    # Capture the MatchInfo first and guard for no match, so a missing or malformed changelog
+    # heading leaves $changelogVersion as $null (failing the assertion below cleanly) instead of
+    # throwing "Cannot index into a null array" here in BeforeAll.
+    $changelogMatch = Select-String -Path $changelogPath -Pattern $changelogVersionPattern |
+        Select-Object -First 1
+    $changelogVersion = if ($changelogMatch) {
+        $changelogMatch.Matches[0].Groups['Version'].Value
+    }
 }
 Describe 'Module manifest' {
 
