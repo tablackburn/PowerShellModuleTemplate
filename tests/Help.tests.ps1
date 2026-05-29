@@ -48,18 +48,15 @@ BeforeDiscovery {
     # Check if the BHBuildOutput environment variable exists to determine if this test is running in a psake
     # build or not. If it does not exist, it is not running in a psake build, so build the module.
     if ($null -eq $Env:BHBuildOutput) {
-        # Populate BuildHelpers env vars so build.psake.ps1's properties block has
-        # the values it needs (BHPSModuleManifest, BHProjectName). When running via
-        # ./build.ps1 this happens before psake; running tests in isolation bypasses
-        # that, so we do it here. Set-BuildEnvironment is idempotent and -Force keeps
-        # it from erroring if the vars are already set.
-        Set-BuildEnvironment -Path (Split-Path -Path $PSScriptRoot -Parent) -Force
-        $buildFilePath = Join-Path -Path $PSScriptRoot -ChildPath '..\build.psake.ps1'
-        $invokePsakeParameters = @{
-            TaskList  = 'Build'
-            BuildFile = $buildFilePath
-        }
-        Invoke-psake @invokePsakeParameters
+        # Standalone run (e.g. Invoke-Pester on this file directly, or an agent
+        # running one test): the module isn't built and the BuildHelpers env vars
+        # aren't set. Defer to build.ps1 -- the canonical entry point -- to bootstrap
+        # dependencies, set the BuildHelpers environment, and stage the module.
+        # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
+        # the call operator contains it to the script boundary instead of ending the
+        # whole Pester run.
+        $buildScript = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'build.ps1'
+        & $buildScript -Task 'Build' -Bootstrap
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/, override BHBuildOutput
@@ -105,18 +102,15 @@ BeforeAll {
     # Check if the BHBuildOutput environment variable exists to determine if this test is running in a psake
     # build or not. If it does not exist, it is not running in a psake build, so build the module.
     if ($null -eq $Env:BHBuildOutput) {
-        # Populate BuildHelpers env vars so build.psake.ps1's properties block has
-        # the values it needs (BHPSModuleManifest, BHProjectName). When running via
-        # ./build.ps1 this happens before psake; running tests in isolation bypasses
-        # that, so we do it here. Set-BuildEnvironment is idempotent and -Force keeps
-        # it from erroring if the vars are already set.
-        Set-BuildEnvironment -Path (Split-Path -Path $PSScriptRoot -Parent) -Force
-        $buildFilePath = Join-Path -Path $PSScriptRoot -ChildPath '..\build.psake.ps1'
-        $invokePsakeParameters = @{
-            TaskList  = 'Build'
-            BuildFile = $buildFilePath
-        }
-        Invoke-psake @invokePsakeParameters
+        # Standalone run (e.g. Invoke-Pester on this file directly, or an agent
+        # running one test): the module isn't built and the BuildHelpers env vars
+        # aren't set. Defer to build.ps1 -- the canonical entry point -- to bootstrap
+        # dependencies, set the BuildHelpers environment, and stage the module.
+        # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
+        # the call operator contains it to the script boundary instead of ending the
+        # whole Pester run.
+        $buildScript = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'build.ps1'
+        & $buildScript -Task 'Build' -Bootstrap
     }
 }
 

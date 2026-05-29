@@ -14,7 +14,7 @@ own `CHANGELOG.md` (generated from `CHANGELOG.template.md` during init).
 
 - "Repository secrets" section in `README.md` documenting the GitHub Actions secrets the bundled workflows expect (`PSGALLERY_API_KEY`, `CODECOV_TOKEN`, `GITGUARDIAN_API_KEY`) — required vs. optional, source, and failure mode when missing.
 - `Initialize-Template.ps1` now mentions configuring GitHub repository secrets in its post-init "Next steps" output, between the build-test step and the first push.
-- `tests/Help.tests.ps1` now calls `Set-BuildEnvironment` inside its build-bootstrap guard (both `BeforeDiscovery` and `BeforeAll`) so the Help tests can run standalone — e.g. `Invoke-Pester tests/Help.tests.ps1` directly from an editor — without first running `./build.ps1`. The call is skipped entirely when tests run through the build pipeline (the guard only fires when `BHBuildOutput` is unset), and `Set-BuildEnvironment -Force` is idempotent, so there is no effect on CI or `./build.ps1` runs.
+- `tests/Help.tests.ps1` can now run standalone — e.g. `Invoke-Pester tests/Help.tests.ps1` directly from an editor (or an agent running a single test) — without first running `./build.ps1`. Its build-bootstrap guard (in both `BeforeDiscovery` and `BeforeAll`) now delegates to `build.ps1 -Task 'Build' -Bootstrap`, the canonical entry point, so dependency bootstrap, BuildHelpers environment setup, and module staging all happen through the real build path instead of a partial reimplementation. The guard only fires when `BHBuildOutput` is unset, so there is no effect on CI or `./build.ps1` runs. `build.ps1` is invoked with the call operator (`&`), not dot-sourced, so its terminating `exit` is contained to the script boundary and does not end the Pester run.
 
 ### Changed
 
