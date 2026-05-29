@@ -8,12 +8,15 @@ param()
 BeforeDiscovery {
     # Build module if not running in psake build
     if ($null -eq $Env:BHBuildOutput) {
-        $buildFilePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..\build.psake.ps1'
-        $invokePsakeParameters = @{
-            TaskList  = 'Build'
-            BuildFile = $buildFilePath
-        }
-        Invoke-psake @invokePsakeParameters
+        # Standalone run (e.g. Invoke-Pester on this file directly, or an agent
+        # running one test): the module isn't built and the BuildHelpers env vars
+        # aren't set. Defer to build.ps1 -- the canonical entry point -- to bootstrap
+        # dependencies, set the BuildHelpers environment, and stage the module.
+        # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
+        # the call operator contains it to the script boundary instead of ending the
+        # whole Pester run.
+        $buildScript = Join-Path -Path (Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent) -ChildPath 'build.ps1'
+        & $buildScript -Task 'Build' -Bootstrap
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/
