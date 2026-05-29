@@ -6,6 +6,10 @@
 param()
 
 BeforeDiscovery {
+    # Resolve the project root once (tests/Unit/<Layer>/ -> repo root, three levels up);
+    # used both to locate build.ps1 below and to compute the staged build output path.
+    $projectRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
+
     # Build module if not running in psake build
     if ($null -eq $Env:BHBuildOutput) {
         # Standalone run (e.g. Invoke-Pester on this file directly, or an agent
@@ -15,12 +19,11 @@ BeforeDiscovery {
         # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
         # the call operator contains it to the script boundary instead of ending the
         # whole Pester run.
-        $buildScript = Join-Path -Path (Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent) -ChildPath 'build.ps1'
+        $buildScript = Join-Path -Path $projectRoot -ChildPath 'build.ps1'
         & $buildScript -Task 'Build' -Bootstrap
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/
-    $projectRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile $sourceManifest).ModuleVersion
     $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"

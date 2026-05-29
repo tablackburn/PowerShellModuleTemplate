@@ -57,6 +57,10 @@
 param()
 
 BeforeDiscovery {
+    # Resolve the project root once (tests/ -> repo root); used both to locate
+    # build.ps1 below and to compute the staged build output path.
+    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
+
     # Check if the BHBuildOutput environment variable exists to determine if this test is running in a psake
     # build or not. If it does not exist, it is not running in a psake build, so build the module.
     if ($null -eq $Env:BHBuildOutput) {
@@ -67,12 +71,11 @@ BeforeDiscovery {
         # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
         # the call operator contains it to the script boundary instead of ending the
         # whole Pester run.
-        $buildScript = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'build.ps1'
+        $buildScript = Join-Path -Path $projectRoot -ChildPath 'build.ps1'
         & $buildScript -Task 'Build' -Bootstrap
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/, override BHBuildOutput
-    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
     $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile $sourceManifest).ModuleVersion
     $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
@@ -99,6 +102,10 @@ BeforeDiscovery {
     $isTemplate = Test-Path -LiteralPath (Join-Path -Path $Env:BHProjectPath -ChildPath 'CHANGELOG.template.md')
 }
 BeforeAll {
+    # Resolve the project root once (tests/ -> repo root); used both to locate
+    # build.ps1 below and to compute the staged build output path.
+    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
+
     # Check if the BHBuildOutput environment variable exists to determine if this test is running in a psake
     # build or not. If it does not exist, it is not running in a psake build, so build the module.
     if ($null -eq $Env:BHBuildOutput) {
@@ -109,12 +116,11 @@ BeforeAll {
         # Invoke with & (not dot-sourcing): build.ps1 ends in an exit statement, and
         # the call operator contains it to the script boundary instead of ending the
         # whole Pester run.
-        $buildScript = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'build.ps1'
+        $buildScript = Join-Path -Path $projectRoot -ChildPath 'build.ps1'
         & $buildScript -Task 'Build' -Bootstrap
     }
 
     # PowerShellBuild outputs to Output/<ModuleName>/<Version>/, override BHBuildOutput
-    $projectRoot = Split-Path -Path $PSScriptRoot -Parent
     $sourceManifest = Join-Path -Path $projectRoot -ChildPath "$Env:BHProjectName/$Env:BHProjectName.psd1"
     $moduleVersion = (Import-PowerShellDataFile $sourceManifest).ModuleVersion
     $Env:BHBuildOutput = Join-Path -Path $projectRoot -ChildPath "Output/$Env:BHProjectName/$moduleVersion"
