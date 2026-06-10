@@ -121,7 +121,7 @@ jobs:
         if: success() && steps.template_guard.outputs.is_template == 'false' && env.CODECOV_TOKEN != ''
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: out/codeCoverage.xml
