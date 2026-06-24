@@ -16,7 +16,7 @@ jobs:
     name: PSScriptAnalyzer Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # Skip lint on the un-initialized template — the literal `./{{ModuleName}}`
       # path argument can't be parsed by PowerShell (the double braces split into
@@ -78,7 +78,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # Skip subsequent steps on the un-initialized template — Build's
       # GENERATEMARKDOWN task can't import the manifest while {{GUID}} is still
