@@ -208,7 +208,7 @@ Describe 'Module manifest' {
             $changelogVersion -as [Version] | Should -Be ( $manifestData.Version -as [Version] )
         }
 
-        Context 'Module Dependency' -ForEach $dependencies {
+        Context 'Module Dependency' -ForEach $dependencies -AllowNullOrEmptyForEach {
             # This ensures we keep our dependent modules in sync between the manifest file and the requirements
             # script used to bootstrap and test.
             BeforeAll {
