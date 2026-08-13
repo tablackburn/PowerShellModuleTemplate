@@ -47,21 +47,26 @@ jobs:
         if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
         run: |
-          if (Get-Module -Name PSScriptAnalyzer -ListAvailable) {
-            $version = (Get-Module -Name PSScriptAnalyzer -ListAvailable |
-              Sort-Object -Property Version -Descending |
-              Select-Object -First 1).Version
-            Write-Host "PSScriptAnalyzer $version already available; skipping install."
+          # Pin to the version build.depend.psd1 declares, so lint results here match
+          # a local ./build.ps1 -Task Analyze. Accepting whatever the runner image
+          # happens to ship means the two can disagree silently.
+          $required = (Import-PowerShellDataFile -Path build.depend.psd1).PSScriptAnalyzer.Version
+          $installed = Get-Module -Name PSScriptAnalyzer -ListAvailable |
+            Where-Object { $_.Version -eq $required }
+          if ($installed) {
+            Write-Host "PSScriptAnalyzer $required already available; skipping install."
             return
           }
 
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+          Install-Module -Name PSScriptAnalyzer -RequiredVersion $required -Force -Scope CurrentUser
 
       - name: Run PSScriptAnalyzer
         if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
         run: |
+          $required = (Import-PowerShellDataFile -Path build.depend.psd1).PSScriptAnalyzer.Version
+          Import-Module -Name PSScriptAnalyzer -RequiredVersion $required -Force -ErrorAction Stop
           $results = Invoke-ScriptAnalyzer -Path ./{{ModuleName}} -Recurse -Settings PSGallery -ReportSummary
           $errors = $results | Where-Object { $_.Severity -eq 'Error' }
 
