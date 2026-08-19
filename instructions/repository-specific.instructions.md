@@ -17,7 +17,7 @@ The repository follows the standard conventions of this module fleet:
 
 - Module structure (Public and Private function separation)
 - Build automation (psake and PowerShellBuild)
-- Testing (Pester 6)
+- Testing (Pester - `build.depend.psd1` names the version the build resolves)
 - Continuous integration and delivery (GitHub Actions)
 
 ## Module Structure
@@ -82,9 +82,11 @@ Private functions also use the `{{Prefix}}` prefix but are not exported:
 - All public functions must have corresponding tests in `tests/Unit/Public/`
 - All private functions should have tests in `tests/Unit/Private/`
 - Mock external dependencies - never make real HTTP requests in tests
-- Use Pester 6 syntax (`BeforeAll`, `BeforeDiscovery`, and so on). `build.depend.psd1` pins
-  Pester to `latest`, so the build floats onto the newest released major version; the `UnitTest`
-  task in `build.psake.ps1` reads that same value so the installed and imported versions agree
+- Write tests for the Pester major version the build resolves, currently Pester 6 (`BeforeAll`,
+  `BeforeDiscovery`, and so on). `build.depend.psd1` sets `Version = 'latest'` rather than a
+  pinned version, so the build floats onto the newest release and can cross a major boundary;
+  the `UnitTest` task in `build.psake.ps1` reads that same value, so the installed and imported
+  versions agree. Treat `build.depend.psd1` as the source of truth, not this sentence
 
 ### Running Tests
 
@@ -113,7 +115,7 @@ The module uses psake for build automation:
 
 - PowerShell 5.1 or higher (PowerShell 7+ recommended)
 - No external module dependencies for runtime
-- Pester 6 (for testing; `build.depend.psd1` pins `Version = 'latest'`)
+- Pester (for testing; `build.depend.psd1` sets `Version = 'latest'`)
 - psake (for build automation)
 
 ## Release Process
