@@ -35,7 +35,8 @@ The repository follows the standard conventions of this module fleet:
 │   └── *.tests.ps1       # Meta, Manifest, Help tests
 ├── instructions/         # AI agent instructions (AIM)
 ├── build.ps1             # Build entry point
-└── build.psake.ps1       # psake build tasks
+├── build.psake.ps1       # psake build tasks
+└── build.depend.psd1     # PSDepend build dependency versions
 ```
 
 ### Key Files
