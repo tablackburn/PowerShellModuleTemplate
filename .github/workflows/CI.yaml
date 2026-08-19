@@ -21,11 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Skip lint on the un-initialized template — the literal `./{{ModuleName}}`
-      # path argument can't be parsed by PowerShell (the double braces split into
-      # mismatched script-block delimiters), so Invoke-ScriptAnalyzer fails with
-      # a positional-argument error before it ever touches the folder. Same
-      # marker as the unit-tests job below.
+      # Skip lint on the un-initialized template. Every path in the manifest and
+      # build still holds a literal `{{ModuleName}}`, so the module cannot be
+      # built and there is nothing for the analyzer to run against. Same marker
+      # as the unit-tests job below.
+      #
+      # This previously guarded a different failure: the analyzer was invoked
+      # directly with `./{{ModuleName}}` as its path argument, and the double
+      # braces split into mismatched script-block delimiters before PowerShell
+      # got as far as the folder. Lint now runs through ./build.ps1, so that
+      # specific breakage is gone -- the guard remains because an un-initialized
+      # template still cannot build.
       - name: Detect template state
         id: template_guard
         shell: bash
@@ -36,52 +42,23 @@ jobs:
             echo "is_template=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # No module cache here on purpose -- see the note in the unit-tests job.
-      # The cache this replaced held 209 bytes: PSScriptAnalyzer ships on the
-      # runner image, so it was never installed into the cached path and the
-      # cache only ever restored an empty directory. Install only when the
-      # image does not already provide it, rather than unconditionally -- the
-      # module is ~339 MB on disk and re-downloading it every run is far more
-      # expensive than the cache ever saved.
-      - name: Install PSScriptAnalyzer
+      # Lint through the build rather than calling Invoke-ScriptAnalyzer directly.
+      #
+      # The direct call passed -Settings PSGallery and analysed the source tree,
+      # while ./build.ps1 -Task Analyze uses this repository's
+      # PSScriptAnalyzerSettings.psd1 and analyses the built module. Two rulesets
+      # over two different paths, so a local run and this job could disagree
+      # without either being wrong. Running the same command both places makes
+      # them agree by construction instead of by intention.
+      - name: Install dependencies
         if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
-        run: |
-          # Pin to the version build.depend.psd1 declares, so lint results here match
-          # a local ./build.ps1 -Task Analyze. Accepting whatever the runner image
-          # happens to ship means the two can disagree silently.
-          $required = (Import-PowerShellDataFile -Path build.depend.psd1).PSScriptAnalyzer.Version
-          $installed = Get-Module -Name PSScriptAnalyzer -ListAvailable |
-            Where-Object { $_.Version -eq $required }
-          if ($installed) {
-            Write-Host "PSScriptAnalyzer $required already available; skipping install."
-            return
-          }
-
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module -Name PSScriptAnalyzer -RequiredVersion $required -Force -Scope CurrentUser
+        run: ./build.ps1 -Bootstrap -Task Init
 
       - name: Run PSScriptAnalyzer
         if: steps.template_guard.outputs.is_template == 'false'
         shell: pwsh
-        run: |
-          $required = (Import-PowerShellDataFile -Path build.depend.psd1).PSScriptAnalyzer.Version
-          Import-Module -Name PSScriptAnalyzer -RequiredVersion $required -Force -ErrorAction Stop
-          $results = Invoke-ScriptAnalyzer -Path ./{{ModuleName}} -Recurse -Settings PSGallery -ReportSummary
-          $errors = $results | Where-Object { $_.Severity -eq 'Error' }
-
-          if ($results) {
-            Write-Host "::group::PSScriptAnalyzer Results"
-            $results | Format-Table -AutoSize
-            Write-Host "::endgroup::"
-          }
-
-          if ($errors) {
-            Write-Host "::error::PSScriptAnalyzer found $($errors.Count) error(s)"
-            exit 1
-          }
-
-          Write-Host "PSScriptAnalyzer passed with no errors"
+        run: ./build.ps1 -Task Analyze
 
   unit-tests:
     name: Unit Tests (${{ matrix.os }})
