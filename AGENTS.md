@@ -1,61 +1,76 @@
 # AI Agent Instructions
 
-This document provides guidance for AI agents (such as Claude Code, GitHub Copilot, or similar tools) when working with this repository.
+AI agents working in this repository must follow these instructions.
 
-## Repository Overview
+Template Version: 0.11.0
 
-This is a PowerShell module project following standard conventions for:
-- Module structure (Public/Private function separation)
-- Build automation (psake + PowerShellBuild)
-- Testing (Pester 5.x)
-- CI/CD (GitHub Actions)
+Last sync: 2026-08-19
 
-## Key Files
+## Instructions for AI Agents
 
-| File | Purpose |
-|------|---------|
-| `build.ps1` | Entry point for all build operations |
-| `build.psake.ps1` | Psake task definitions |
-| `{{ModuleName}}/{{ModuleName}}.psd1` | Module manifest |
-| `{{ModuleName}}/{{ModuleName}}.psm1` | Module root file |
-| `tests/` | Pester test suite |
+AI agents **must**:
 
-## Common Tasks
+1. **When deploying or updating this template, follow `instructions/update.instructions.md` and
+   update the Last sync date above.**
 
-### Building
+1. **Read `instructions/agent-workflow.instructions.md` FIRST to determine which other instruction
+   files apply to your task.** Follow all applicable instructions before proceeding with work.
 
-```powershell
-./build.ps1 -Task Build -Bootstrap
-```
+1. **Check `aim.config.json`** for module configuration, external source, and skill dependency settings.
 
-### Testing
+## Instruction Applicability Matrix
 
-```powershell
-./build.ps1 -Task Test
-```
+Use this matrix to determine which instruction files to read based on your task:
 
-### Adding a New Function
+| Task Type                    | Required Instructions                  |
+| ---------------------------- | -------------------------------------- |
+| Any task                     | `agent-workflow.instructions.md`       |
+| Any code or documentation    | `shorthand.instructions.md`            |
+| Git operations               | `git-workflow.instructions.md`         |
+| Writing tests                | `testing.instructions.md`              |
+| Build, test, or publish (psake / PowerShellBuild) | `.agents/skills/psake/SKILL.md`, `.agents/skills/powershellbuild/SKILL.md` |
+| PowerShell code              | `powershell.instructions.md`           |
+| Documentation                | `markdown.instructions.md`             |
+| README files                 | `readme.instructions.md`               |
+| GitHub CLI usage             | `github-cli.instructions.md`           |
+| Creating releases            | `releases.instructions.md`             |
+| Repository-specific work     | `repository-specific.instructions.md`  |
+| Updating instructions        | `update.instructions.md`               |
+| Contributing to upstream     | `contributing.instructions.md`         |
 
-1. Create function file in `{{ModuleName}}/Public/` or `{{ModuleName}}/Private/`
-2. Add function name to `FunctionsToExport` in `.psd1` (public functions only)
-3. Create corresponding test file in `tests/Unit/Public/` or `tests/Unit/Private/`
+## Available Instruction Files
 
-## Code Style
+- `agent-workflow.instructions.md` - Pre-flight protocol and task workflow
+- `shorthand.instructions.md` - Avoid shorthand and abbreviations
+- `git-workflow.instructions.md` - Git branching, commits, and PR conventions
+- `testing.instructions.md` - Test writing best practices
+- `powershell.instructions.md` - PowerShell coding standards
+- `markdown.instructions.md` - Markdown formatting standards
+- `readme.instructions.md` - README maintenance guidelines
+- `github-cli.instructions.md` - GitHub CLI usage guidelines
+- `releases.instructions.md` - Release management guidelines
+- `repository-specific.instructions.md` - Repository-specific customizations
+- `update.instructions.md` - Procedures for updating instructions
+- `contributing.instructions.md` - Contributing improvements to upstream
 
-- Use `{{Prefix}}` prefix for all function nouns (e.g., `Get-{{Prefix}}Example`)
-- Include full comment-based help with .SYNOPSIS, .DESCRIPTION, .PARAMETER, .EXAMPLE
-- Use `[CmdletBinding()]` on all functions
-- Follow PSScriptAnalyzer rules
+## Quick Reference
 
-## Testing Requirements
+### Before Starting Any Task
 
-- All public functions must have corresponding test files
-- Use Pester 5.x syntax (BeforeAll, BeforeDiscovery, etc.)
-- Mock external dependencies in unit tests
+1. Identify the task type from the matrix above
+1. Read all applicable instruction files
+1. Follow the guidelines when implementing
 
-## Instructions Directory
+### Best Practices
 
-See the `instructions/` folder for detailed guidance on specific topics.
+- Follow existing patterns in the codebase
+- Keep solutions simple and focused
+- Only make changes that are directly requested
+- Follow language-specific guidelines
+
+## Repository-Specific Instructions
+
+See `instructions/repository-specific.instructions.md` for customizations specific to this repository.
 
 ## Skill Dependencies
 

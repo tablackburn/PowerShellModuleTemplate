@@ -13,6 +13,13 @@ conventions.
 
 {{Description}}
 
+The repository follows the standard conventions of this module fleet:
+
+- Module structure (Public and Private function separation)
+- Build automation (psake and PowerShellBuild)
+- Testing (Pester - `build.depend.psd1` names the version the build resolves)
+- Continuous integration and delivery (GitHub Actions)
+
 ## Module Structure
 
 ```text
@@ -28,8 +35,20 @@ conventions.
 │   └── *.tests.ps1       # Meta, Manifest, Help tests
 ├── instructions/         # AI agent instructions (AIM)
 ├── build.ps1             # Build entry point
-└── build.psake.ps1       # psake build tasks
+├── build.psake.ps1       # psake build tasks
+└── build.depend.psd1     # PSDepend build dependency versions
 ```
+
+### Key Files
+
+| File                                 | Purpose                              |
+| ------------------------------------ | ------------------------------------ |
+| `build.ps1`                          | Entry point for all build operations |
+| `build.psake.ps1`                    | psake task definitions               |
+| `build.depend.psd1`                  | PSDepend build dependency versions   |
+| `{{ModuleName}}/{{ModuleName}}.psd1` | Module manifest                      |
+| `{{ModuleName}}/{{ModuleName}}.psm1` | Module root file                     |
+| `tests/`                             | Pester test suite                    |
 
 ## Naming Conventions
 
@@ -45,6 +64,18 @@ Private functions also use the `{{Prefix}}` prefix but are not exported:
 
 - `Invoke-{{Prefix}}Helper`
 
+## Code Style
+
+- Include full comment-based help with `.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, and `.EXAMPLE`
+- Use `[CmdletBinding()]` on all functions
+- Follow the PSScriptAnalyzer rules configured in `PSScriptAnalyzerSettings.psd1`
+
+## Adding a New Function
+
+1. Create the function file in `{{ModuleName}}/Public/` or `{{ModuleName}}/Private/`
+2. Add the function name to `FunctionsToExport` in the module manifest (public functions only)
+3. Create the corresponding test file in `tests/Unit/Public/` or `tests/Unit/Private/`
+
 ## Testing Requirements
 
 ### Pester Tests
@@ -52,6 +83,11 @@ Private functions also use the `{{Prefix}}` prefix but are not exported:
 - All public functions must have corresponding tests in `tests/Unit/Public/`
 - All private functions should have tests in `tests/Unit/Private/`
 - Mock external dependencies - never make real HTTP requests in tests
+- Write tests for the Pester major version the build resolves, currently Pester 6 (`BeforeAll`,
+  `BeforeDiscovery`, and so on). `build.depend.psd1` sets `Version = 'latest'` rather than a
+  pinned version, so the build floats onto the newest release and can cross a major boundary;
+  the `UnitTest` task in `build.psake.ps1` reads that same value, so the installed and imported
+  versions agree. Treat `build.depend.psd1` as the source of truth, not this sentence
 
 ### Running Tests
 
@@ -80,7 +116,7 @@ The module uses psake for build automation:
 
 - PowerShell 5.1 or higher (PowerShell 7+ recommended)
 - No external module dependencies for runtime
-- Pester (for testing)
+- Pester (for testing; `build.depend.psd1` sets `Version = 'latest'`)
 - psake (for build automation)
 
 ## Release Process
