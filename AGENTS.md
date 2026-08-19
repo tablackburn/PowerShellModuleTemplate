@@ -56,3 +56,21 @@ This is a PowerShell module project following standard conventions for:
 ## Instructions Directory
 
 See the `instructions/` folder for detailed guidance on specific topics.
+
+## Skill Dependencies
+
+This repository vendors Agent Skills (the open [Agent Skills](https://agentskills.io) `SKILL.md`
+standard) under `.agents/skills/` - the cross-client convention - so they travel with the
+repository and any agent can use them. Provenance and pinned versions are recorded in
+`aim.config.json` under `skills`.
+
+| Skill             | Location                                  | Use for                                                                                          |
+| ----------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `psake`           | `.agents/skills/psake/SKILL.md`           | Authoring and troubleshooting psake build scripts (`build.psake.ps1`, tasks, dependencies)       |
+| `powershellbuild` | `.agents/skills/powershellbuild/SKILL.md` | PowerShellBuild module build/test/publish (`build.ps1`, PSBPreference, Pester, PSScriptAnalyzer) |
+
+These skills are routed from the Instruction Applicability Matrix above. Because Claude Code reads
+`CLAUDE.md` rather than `AGENTS.md`, the repository's `CLAUDE.md` imports this file (`@AGENTS.md`)
+to carry the routing into Claude Code. The skills are vendored from `psake/psake-llm-tools` (MIT)
+at the version pinned in `aim.config.json`; re-sync from upstream rather than editing the vendored
+copies. See `.agents/skills/NOTICE.md` for attribution.
